@@ -7,17 +7,14 @@ package frc.robot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 
 import static frc.robot.Constants.OperatorConstants.*;
 import static frc.robot.Constants.FuelConstants.*;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj.Joystick;
-
-
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -32,7 +29,7 @@ public class RobotContainer {
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
 
   // The driver's controller
-  private final Joystick driverController = new Joystick(
+  private final CommandJoystick driverController = new CommandJoystick(
       DRIVER_CONTROLLER_PORT);
 
   // The operator's controller
@@ -59,7 +56,7 @@ public class RobotContainer {
    * created via the {@link Trigger#Trigger(java.util.function.BooleanSupplier)}
    * constructor with an arbitrary predicate, or via the named factories in
    * {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses
-   * for {@link CommandXboxController Xbox}/0-
+   * for {@link CommandXboxController Xbox}/
    * {@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or
    * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
@@ -68,19 +65,19 @@ public class RobotContainer {
   private void configureBindings() {
 
     // While the left bumper on operator controller is held, intake Fuel
-    new JoystickButton(driverController, 0)
+    driverController.top()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
-    
-    new JoystickButton(driverController, 1)
+    driverController.trigger()
         .whileTrue(ballSubsystem.spinUpCommand().withTimeout(SPIN_UP_SECONDS)
             .andThen(ballSubsystem.launchCommand())
             .finallyDo(() -> ballSubsystem.stop()));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
-    new JoystickButton(driverController, 2)
+    driverController.top()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
+
 
 
     // Set the default command for the drive subsystem to the command provided by
