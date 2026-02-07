@@ -68,7 +68,7 @@ public class RobotContainer {
   private void configureBindings() {
 
     // While the left bumper on operator controller is held, intake Fuel
-    new JoystickButton(driverController, 0)
+    new JoystickButton(driverController, 2)
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
@@ -79,7 +79,7 @@ public class RobotContainer {
             .finallyDo(() -> ballSubsystem.stop()));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
-    new JoystickButton(driverController, 2)
+    new JoystickButton(driverController, 3)
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
 
