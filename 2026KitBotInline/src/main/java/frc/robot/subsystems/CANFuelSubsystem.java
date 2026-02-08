@@ -4,23 +4,92 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.SparkMax;
+
+
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.FuelConstants.*;
 
+
 public class CANFuelSubsystem extends SubsystemBase {
+  private final CANBus kCanBus = new CANBus("rio"); 
+
+  private final TalonFX feederMotor = new TalonFX(FEEDER_MOTOR_ID, kCanBus);
+  private final TalonFX launcherIntakeMotor = new TalonFX(INTAKE_LAUNCHER_MOTOR_ID, kCanBus);
+
+  private final DutyCycleOut feederout = new DutyCycleOut(0);
+  private final DutyCycleOut launcherIntakeout = new DutyCycleOut(0);
+
+  public CANFuelSubsystem() {
+    //incase we need this
+    var feederConfiguration = new TalonFXConfiguration();
+    var launcherIntakeConfiguration = new TalonFXConfiguration();
+
+    feederConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    feederMotor.getConfigurator().apply(feederConfiguration);
+
+    feederMotor.setSafetyEnabled(true);
+    launcherIntakeMotor.setSafetyEnabled(true);
+  }
+
+  public void launch() {
+    feederout.Output = LAUNCHING_FEEDER_VALUE;
+    launcherIntakeout.Output = LAUNCHING_LAUNCHER_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(launcherIntakeout);
+  }
+
+  public void intake() {
+    feederout.Output = INTAKING_FEEDER_VALUE;
+    launcherIntakeout.Output = INTAKING_INTAKE_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(launcherIntakeout);
+  }
+
+  public void eject() {
+    feederout.Output = -INTAKING_FEEDER_VALUE;
+    launcherIntakeout.Output = -INTAKING_INTAKE_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(launcherIntakeout);
+  }
+
+  public void stop() {
+    feederMotor.stopMotor();
+    launcherIntakeMotor.stopMotor();
+  }
+
+  public void spinUp() {
+    feederout.Output = SPIN_UP_FEEDER_VALUE;
+    launcherIntakeout.Output = LAUNCHING_LAUNCHER_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(launcherIntakeout);
+  }
+
+  public Command spinUpCommand() {
+    return this.run(() -> spinUp());
+  }
+
+  public Command launchCommand() {
+    return this.run(() -> launch());
+  }
+}
+/*
+  public class CANFuel1Subsystem extends SubsystemBase {
   private final SparkMax feederRoller;
   private final SparkMax intakeLauncherRoller;
 
-  /** Creates a new CANBallSubsystem. */
-  public CANFuelSubsystem() {
+  // Creates a new CANBallSubsystem. 
+  public CANFuel1Subsystem() {
     // create brushed motors for each of the motors on the launcher mechanism
     intakeLauncherRoller = new SparkMax(INTAKE_LAUNCHER_MOTOR_ID, MotorType.kBrushed);
     feederRoller = new SparkMax(FEEDER_MOTOR_ID, MotorType.kBrushed);
@@ -105,3 +174,4 @@ public class CANFuelSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 }
+*/
