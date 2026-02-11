@@ -44,7 +44,7 @@ public final class Constants {
     public static final double LAUNCHING_FEEDER_VALUE = 0.7;
     public static final double LAUNCHING_LAUNCHER_VALUE = 0.7;
     public static final double SPIN_UP_FEEDER_VALUE = -0.7;
-    public static final double SPIN_UP_SECONDS = 1;
+    public static final double SPIN_UP_SECONDS = 0.5;
   }
 
   public static final class OperatorConstants {

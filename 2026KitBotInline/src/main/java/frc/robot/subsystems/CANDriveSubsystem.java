@@ -75,8 +75,8 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   // Command factory to create command to drive the robot with joystick inputs.
-  public Command driveArcade(DoubleSupplier xSpeed, DoubleSupplier ySpeed) {
+  public Command driveArcade(DoubleSupplier ySpeed, DoubleSupplier xSpeed) {
     return this.run(
-        () -> drive.arcadeDrive(xSpeed.getAsDouble(), ySpeed.getAsDouble()));
+        () -> drive.arcadeDrive(ySpeed.getAsDouble(), xSpeed.getAsDouble()));
   }
 }

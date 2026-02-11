@@ -51,7 +51,9 @@ public class RobotContainer {
     // Set the options to show up in the Dashboard for selecting auto modes. If you
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
-    autoChooser.setDefaultOption("Autonomous", Autos.exampleAuto(driveSubsystem, ballSubsystem));
+    autoChooser.setDefaultOption("Drive and shoot from middle", Autos.driveShootMiddle(driveSubsystem, ballSubsystem));
+    autoChooser.addOption("Drive and shoot from left", Autos.driveShootLeft(driveSubsystem, ballSubsystem));
+    autoChooser.addOption("Drive and shoot from right", Autos.driveShootRight(driveSubsystem, ballSubsystem));
   }
 
   /**
@@ -102,7 +104,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
+    // Command to run in auto
     return autoChooser.getSelected();
   }
 }
