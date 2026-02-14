@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.LimelightAlign;
 import edu.wpi.first.math.geometry.Pose2d;
 
 public class CANDriveSubsystem extends SubsystemBase {
@@ -81,6 +82,8 @@ public class CANDriveSubsystem extends SubsystemBase {
 
 
 
+
+
     // // Autos from Pathplanner
     // RobotConfig robotConfig;
     // try{
@@ -110,6 +113,12 @@ public class CANDriveSubsystem extends SubsystemBase {
     //         },
     //         this // Reference to this subsystem to set requirements
     // );
+  }
+
+  public void limelightShootingAlign() {
+    final LimelightAlign limelightAlign = new LimelightAlign();
+    Double[] driveAlign = limelightAlign.limelightShootAlign();
+    drive.arcadeDrive(driveAlign[0], driveAlign[1]);
   }
 
   @Override

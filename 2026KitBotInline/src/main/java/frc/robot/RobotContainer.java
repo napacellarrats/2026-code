@@ -98,8 +98,8 @@ public class RobotContainer {
 
     // Auto-alignment for shooting
     // Idk of a better way to do this with the "whileTrue" needing to run a command
-    // new JoystickButton(driverController, 4)
-    //     .whileTrue(limelightAlign.limelightShootAlign(xCorrection, yCorrection));
+    new JoystickButton(driverController, 4)
+        .whileTrue(driveSubsystem.limelightAlignCommand());
 
 
     // Set the default command for the drive subsystem to the command provided by
