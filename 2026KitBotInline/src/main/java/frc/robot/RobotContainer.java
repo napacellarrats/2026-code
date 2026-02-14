@@ -35,10 +35,12 @@ public class RobotContainer {
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
 
   // Limelight
-  private final LimelightAlign limelightAlign = new LimelightAlign();
+  // private final LimelightAlign limelightAlign = new LimelightAlign();
+  // private final Double yCorrection = 0.0;
+  // private final Double xCorrection = 0.0;
 
   // The driver's controller
-  private final Joystick driverController = new Joystick(
+  public final Joystick driverController = new Joystick(
       DRIVER_CONTROLLER_PORT);
 
   // The operator's controller
@@ -49,8 +51,6 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     // In order to align using limelight
-  private final Double JoystickY = -driverController.getY();
-  private final Double JoystickX = -driverController.getX();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -94,10 +94,12 @@ public class RobotContainer {
     new JoystickButton(driverController, 3)
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
+    
+
     // Auto-alignment for shooting
     // Idk of a better way to do this with the "whileTrue" needing to run a command
-    new JoystickButton(driverController, 4)
-        .whileTrue(limelightAlign.limelightShootAlign(JoystickX, JoystickY));
+    // new JoystickButton(driverController, 4)
+    //     .whileTrue(limelightAlign.limelightShootAlign(xCorrection, yCorrection));
 
 
     // Set the default command for the drive subsystem to the command provided by
@@ -109,8 +111,8 @@ public class RobotContainer {
     // are also scaled down so the rotation is more easily controllable.
     driveSubsystem.setDefaultCommand(
         driveSubsystem.driveArcade(
-            () -> JoystickY * DRIVE_SCALING,
-            () -> JoystickX * ROTATION_SCALING));
+            () -> -driverController.getY() * DRIVE_SCALING,
+            () -> -driverController.getX() * ROTATION_SCALING));
   }
 
   /**
