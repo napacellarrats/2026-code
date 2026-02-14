@@ -1,16 +1,17 @@
-package frc;
+package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.Constants;
-import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CANDriveSubsystem;
 
 public class LimelightAlign {
-    public final Double[] limelightShootAlign(double steering_adjust, double distance_adjust) {
+    public final Double[] limelightShootAlign() {
         double KpAim = -0.5;
         double KpDistance = -0.5;
         double min_aim_command = 0.05;
+
+        double steering_adjust = 0.0;
+        double distance_adjust = 0.0;
 
         double tx = LimelightHelpers.getTX("");
         double ty = LimelightHelpers.getTY("");

@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.LimelightAlign;
+import frc.robot.LimelightAlign;
 import edu.wpi.first.math.geometry.Pose2d;
 
 public class CANDriveSubsystem extends SubsystemBase {
@@ -129,5 +129,9 @@ public class CANDriveSubsystem extends SubsystemBase {
   public Command driveArcade(DoubleSupplier ySpeed, DoubleSupplier xSpeed) {
     return this.run(
         () -> drive.arcadeDrive(ySpeed.getAsDouble(), xSpeed.getAsDouble()));
+  }
+
+  public Command limelightAlignCommand() {
+    return this.run(this::limelightShootingAlign);
   }
 }
