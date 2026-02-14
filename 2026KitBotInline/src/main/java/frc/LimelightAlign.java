@@ -7,9 +7,9 @@ import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CANDriveSubsystem;
 
 public class LimelightAlign {
-    public final Command limelightShootAlign(double steering_adjust, double distance_adjust) {
-        double KpAim = -0.1;
-        double KpDistance = -0.1;
+    public final Double[] limelightShootAlign(double steering_adjust, double distance_adjust) {
+        double KpAim = -0.5;
+        double KpDistance = -0.5;
         double min_aim_command = 0.05;
 
         double tx = LimelightHelpers.getTX("");
@@ -26,8 +26,6 @@ public class LimelightAlign {
 
         distance_adjust = KpDistance * -ty;
 
-        return new SequentialCommandGroup(
-
-        );
+        return new Double[] { distance_adjust, steering_adjust };
     }
 }
