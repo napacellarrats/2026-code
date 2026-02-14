@@ -6,9 +6,9 @@ import frc.robot.subsystems.CANDriveSubsystem;
 
 public class LimelightAlign {
     public final Double[] limelightShootAlign() {
-        double KpAim = -0.5;
+        double KpAim = -0.1;
         double KpDistance = -0.5;
-        double min_aim_command = 0.05;
+        double min_aim_command = 0.1;
 
         double steering_adjust = 0.0;
         double distance_adjust = 0.0;
@@ -19,9 +19,9 @@ public class LimelightAlign {
 
         steering_adjust = 0.0;
 
-        if (tx > 1.0) {
+        if (tx > 1.0 &&  KpAim * -tx - min_aim_command > 0) {
             steering_adjust = KpAim * -tx - min_aim_command;
-        } else if (tx < -1.0) {
+        } else if (tx < -1.0 &&  KpAim * -tx - min_aim_command < 0) {
             steering_adjust = KpAim * -tx + min_aim_command;
         }
 
