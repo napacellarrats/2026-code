@@ -11,6 +11,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import static frc.robot.Constants.OperatorConstants.*;
 import static frc.robot.Constants.FuelConstants.*;
+
+import frc.LimelightAlign;
+import frc.LimelightAlign.*;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
@@ -31,6 +34,9 @@ public class RobotContainer {
   private final CANDriveSubsystem driveSubsystem = new CANDriveSubsystem();
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
 
+  // Limelight
+  private final LimelightAlign limelightAlign = new LimelightAlign();
+
   // The driver's controller
   private final Joystick driverController = new Joystick(
       DRIVER_CONTROLLER_PORT);
@@ -42,6 +48,10 @@ public class RobotContainer {
   // The autonomous chooser
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
+    // In order to align using limelight
+  private final Double JoystickY = -driverController.getY();
+  private final Double JoystickX = -driverController.getX();
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -51,9 +61,9 @@ public class RobotContainer {
     // Set the options to show up in the Dashboard for selecting auto modes. If you
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
-    autoChooser.setDefaultOption("Drive and shoot from middle", Autos.driveShootMiddle(driveSubsystem, ballSubsystem));
-    autoChooser.addOption("Drive and shoot from left", Autos.driveShootLeft(driveSubsystem, ballSubsystem));
-    autoChooser.addOption("Drive and shoot from right", Autos.driveShootRight(driveSubsystem, ballSubsystem));
+    // autoChooser.setDefaultOption("Drive and shoot from middle", Autos.driveShootMiddle(driveSubsystem, ballSubsystem));
+    // autoChooser.addOption("Drive and shoot from left", Autos.driveShootLeft(driveSubsystem, ballSubsystem));
+    // autoChooser.addOption("Drive and shoot from right", Autos.driveShootRight(driveSubsystem, ballSubsystem));
   }
 
   /**
@@ -84,6 +94,11 @@ public class RobotContainer {
     new JoystickButton(driverController, 3)
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
+    // Auto-alignment for shooting
+    // Idk of a better way to do this with the "whileTrue" needing to run a command
+    new JoystickButton(driverController, 4)
+        .whileTrue(limelightAlign.limelightShootAlign(JoystickX, JoystickY));
+
 
     // Set the default command for the drive subsystem to the command provided by
     // factory with the values provided by the joystick axes on the driver
@@ -94,8 +109,8 @@ public class RobotContainer {
     // are also scaled down so the rotation is more easily controllable.
     driveSubsystem.setDefaultCommand(
         driveSubsystem.driveArcade(
-            () -> -driverController.getY() * DRIVE_SCALING,
-            () -> -driverController.getX() * ROTATION_SCALING));
+            () -> JoystickY * DRIVE_SCALING,
+            () -> JoystickX * ROTATION_SCALING));
   }
 
   /**
