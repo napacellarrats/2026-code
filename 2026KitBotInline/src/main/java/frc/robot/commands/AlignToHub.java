@@ -10,8 +10,8 @@ import frc.robot.Constants.DriveConstants;
 public class AlignToHub extends Command {
     private PIDController xController, yController;
     private Timer dontSeeTagTimer, stopTimer;
-    private double tagID = -1;
-    private CANDriveSubsystem driveSubsystem;
+    private int tagID = -1;
+    private final CANDriveSubsystem driveSubsystem;
 
     public AlignToHub(CANDriveSubsystem driveSubsystem) {
         xController = new PIDController(DriveConstants.X_ALIGNMENT_P, 0, 0);
@@ -22,10 +22,15 @@ public class AlignToHub extends Command {
 
     @Override
     public void initialize() {
+        tagID = -1;
+        
         this.stopTimer = new Timer();
         this.stopTimer.start();
         this.dontSeeTagTimer = new Timer();
         this.dontSeeTagTimer.start();
+
+        xController.reset();
+        yController.reset();
 
         xController.setSetpoint(DriveConstants.X_SETPOINT_ALIGNMENT);
         xController.setTolerance(DriveConstants.X_TOLERANCE_ALIGNMENT);
@@ -34,30 +39,46 @@ public class AlignToHub extends Command {
         yController.setTolerance(DriveConstants.Y_TOLERANCE_ALIGNMENT);
 
         if (LimelightHelpers.getTV("")) {
-            tagID = LimelightHelpers.getFiducialID("");
+            tagID = (int) Math.round(LimelightHelpers.getFiducialID(""));
         }
     }
 
+    @Override
     public void execute() {
-        if (LimelightHelpers.getTV("") && LimelightHelpers.getFiducialID("") == tagID) {
+        boolean hasTarget = LimelightHelpers.getTV("");
+        int currentTag = hasTarget ? (int) Math.round(LimelightHelpers.getFiducialID("")) : -1;
+
+        if (hasTarget && tagID == -1) {
+            tagID = currentTag;
+        }
+
+        if (hasTarget && currentTag == tagID) {
             this.dontSeeTagTimer.reset();
 
             double[] positions = LimelightHelpers.getBotPose_TargetSpace("");
             double xSpeed = xController.calculate(positions[0]);
             double ySpeed = -yController.calculate(positions[2]);
 
-            if (yController.getError() < DriveConstants.Y_TOLERANCE_ALIGNMENT) {
-                driveSubsystem.driveArcade(() -> ySpeed, () -> xSpeed);
+            if (Math.abs(yController.getError()) < DriveConstants.Y_TOLERANCE_ALIGNMENT) {
+                driveSubsystem.arcadeDrive(ySpeed, xSpeed);
+            } else {
+                driveSubsystem.arcadeDrive(0.0, xSpeed);
             }
 
             if (!yController.atSetpoint() || !xController.atSetpoint()) {
                 stopTimer.reset();
             }
         } else {
-            driveSubsystem.driveArcade(() -> 0.0, () -> 0.0);
+            driveSubsystem.arcadeDrive(0.0, 0.0);
         }
     }
 
+    @Override
+    public void end(boolean interrupted) {
+        driveSubsystem.arcadeDrive(0.0, 0.0);
+    }
+
+    @Override
     public boolean isFinished() {
         return this.dontSeeTagTimer.hasElapsed(DriveConstants.DONT_SEE_TAG_WAIT_TIME)
                 || stopTimer.hasElapsed(DriveConstants.POSE_VALIDATION_TIME);

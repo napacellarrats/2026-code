@@ -97,7 +97,6 @@ public class RobotContainer {
     
 
     // Auto-alignment for shooting
-    // Idk of a better way to do this with the "whileTrue" needing to run a command
     new JoystickButton(driverController, 4)
         .onTrue(new AlignToHub(driveSubsystem).withTimeout(3));
 

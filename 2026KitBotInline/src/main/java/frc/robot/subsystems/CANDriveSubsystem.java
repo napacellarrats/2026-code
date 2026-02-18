@@ -125,6 +125,11 @@ public class CANDriveSubsystem extends SubsystemBase {
   public void periodic() {
   }
 
+  // Direct control for use inside alignment
+  public void arcadeDrive(double ySpeed, double xSpeed) {
+    drive.arcadeDrive(ySpeed, xSpeed);
+  }
+
   // Command factory to create command to drive the robot with joystick inputs.
   public Command driveArcade(DoubleSupplier ySpeed, DoubleSupplier xSpeed) {
     return this.run(
