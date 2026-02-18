@@ -13,6 +13,7 @@ import static frc.robot.Constants.OperatorConstants.*;
 import static frc.robot.Constants.FuelConstants.*;
 
 import frc.robot.LimelightAlign.*;
+import frc.robot.commands.AlignToHub;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
@@ -96,9 +97,8 @@ public class RobotContainer {
     
 
     // Auto-alignment for shooting
-    // Idk of a better way to do this with the "whileTrue" needing to run a command
     new JoystickButton(driverController, 4)
-        .whileTrue(driveSubsystem.limelightAlignCommand());
+        .onTrue(new AlignToHub(driveSubsystem).withTimeout(3));
 
 
     // Set the default command for the drive subsystem to the command provided by
@@ -111,7 +111,7 @@ public class RobotContainer {
     driveSubsystem.setDefaultCommand(
         driveSubsystem.driveArcade(
             () -> -driverController.getY() * DRIVE_SCALING,
-            () -> -driverController.getX() * ROTATION_SCALING));
+            () -> (-driverController.getX() - driverController.getZ()) * ROTATION_SCALING));
   }
 
   /**

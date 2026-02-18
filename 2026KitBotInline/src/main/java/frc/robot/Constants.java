@@ -25,6 +25,16 @@ public final class Constants {
     // Current limit for drivetrain motors. 60A is a reasonable maximum to reduce
     // likelihood of tripping breakers or damaging CIM motors
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
+
+    // Alignment values
+    public static final double X_ALIGNMENT_P = 2;
+    public static final double Y_ALIGNMENT_P = 4;
+    public static final double X_SETPOINT_ALIGNMENT = 0.5;
+    public static final double Y_SETPOINT_ALIGNMENT = 4.0;
+    public static final double X_TOLERANCE_ALIGNMENT = 0.5;
+    public static final double Y_TOLERANCE_ALIGNMENT = 0.5;
+    public static final double DONT_SEE_TAG_WAIT_TIME = 1.0;
+    public static final double POSE_VALIDATION_TIME = 0.3;
   }
 
   public static final class FuelConstants {
