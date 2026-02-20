@@ -27,8 +27,8 @@ public final class Constants {
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
 
     // Alignment values
-    public static final double X_ALIGNMENT_P = 2;
-    public static final double Y_ALIGNMENT_P = 4;
+    public static final double X_ALIGNMENT_P = 1.0;
+    public static final double Y_ALIGNMENT_P = 1.0;
     public static final double X_SETPOINT_ALIGNMENT = 0.5;
     public static final double Y_SETPOINT_ALIGNMENT = 4.0;
     public static final double X_TOLERANCE_ALIGNMENT = 0.5;
@@ -66,6 +66,6 @@ public final class Constants {
     // This value is multiplied by the joystick value when driving the robot to
     // help avoid driving and turning too fast and being difficult to control
     public static final double DRIVE_SCALING = .7;
-    public static final double ROTATION_SCALING = .8;
+    public static final double ROTATION_SCALING = .6;
   }
 }

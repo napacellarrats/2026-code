@@ -55,15 +55,19 @@ public class AlignToHub extends Command {
         if (hasTarget && currentTag == tagID) {
             this.dontSeeTagTimer.reset();
 
-            double[] positions = LimelightHelpers.getBotPose_TargetSpace("");
-            double xSpeed = xController.calculate(positions[0]);
-            double ySpeed = -yController.calculate(positions[2]);
+            double tx = LimelightHelpers.getTX("");
+            double xSpeed = xController.calculate(tx);
+            // double ySpeed = -yController.calculate(positions[2]);
 
-            if (Math.abs(yController.getError()) < DriveConstants.Y_TOLERANCE_ALIGNMENT) {
-                driveSubsystem.arcadeDrive(ySpeed, xSpeed);
-            } else {
-                driveSubsystem.arcadeDrive(0.0, xSpeed);
-            }
+            // if (Math.abs(yController.getError()) < DriveConstants.Y_TOLERANCE_ALIGNMENT) {
+            //     driveSubsystem.arcadeDrive(ySpeed, xSpeed);
+            // } else {
+            //     driveSubsystem.arcadeDrive(0.0, xSpeed);
+            // }
+            
+            xSpeed /= 25;
+
+            driveSubsystem.arcadeDrive(0.0, xSpeed);
 
             if (!yController.atSetpoint() || !xController.atSetpoint()) {
                 stopTimer.reset();
