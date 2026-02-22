@@ -27,14 +27,14 @@ public final class Constants {
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
 
     // Alignment values
-    public static final double X_ALIGNMENT_P = 1.0;
+    public static final double X_ALIGNMENT_P = 0.1;
     public static final double Y_ALIGNMENT_P = 1.0;
-    public static final double X_SETPOINT_ALIGNMENT = 0.5;
+    public static final double X_SETPOINT_ALIGNMENT = 0.0;
     public static final double Y_SETPOINT_ALIGNMENT = 4.0;
     public static final double X_TOLERANCE_ALIGNMENT = 0.5;
     public static final double Y_TOLERANCE_ALIGNMENT = 0.5;
     public static final double DONT_SEE_TAG_WAIT_TIME = 1.0;
-    public static final double POSE_VALIDATION_TIME = 0.3;
+    public static final double POSE_VALIDATION_TIME = 3.0;
   }
 
   public static final class FuelConstants {

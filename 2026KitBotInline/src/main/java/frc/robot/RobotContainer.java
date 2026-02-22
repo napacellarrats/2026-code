@@ -44,8 +44,8 @@ public class RobotContainer {
       DRIVER_CONTROLLER_PORT);
 
   // The operator's controller
-  // private final CommandXboxController operatorController = new CommandXboxController(
-  //     OPERATOR_CONTROLLER_PORT);
+  private final Joystick operatorController = new Joystick(
+      OPERATOR_CONTROLLER_PORT);
 
   // The autonomous chooser
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -82,6 +82,10 @@ public class RobotContainer {
     // While the left bumper on operator controller is held, intake Fuel
     new JoystickButton(driverController, 2)
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
+
+    new JoystickButton(operatorController, 2)
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
+
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
     

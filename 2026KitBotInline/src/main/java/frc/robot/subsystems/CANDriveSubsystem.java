@@ -115,10 +115,8 @@ public class CANDriveSubsystem extends SubsystemBase {
     // );
   }
 
-  public void limelightShootingAlign() {
-    final LimelightAlign limelightAlign = new LimelightAlign();
-    Double[] driveAlign = limelightAlign.limelightShootAlign();
-    drive.arcadeDrive(driveAlign[0], driveAlign[1]);
+  @Override
+  public void simulationPeriodic() {
   }
 
   @Override
@@ -134,9 +132,5 @@ public class CANDriveSubsystem extends SubsystemBase {
   public Command driveArcade(DoubleSupplier ySpeed, DoubleSupplier xSpeed) {
     return this.run(
         () -> drive.arcadeDrive(ySpeed.getAsDouble(), xSpeed.getAsDouble()));
-  }
-
-  public Command limelightAlignCommand() {
-    return this.run(this::limelightShootingAlign);
   }
 }
