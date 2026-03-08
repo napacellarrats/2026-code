@@ -22,6 +22,11 @@ public final class Constants {
     public static final int RIGHT_LEADER_ID = 1;
     public static final int RIGHT_FOLLOWER_ID = 2;
 
+    public static final double DRIVE_GEAR_RATIO = 8.450;
+
+    // IMU ID
+    public static final int PIGEON2_ID = 7;
+
     // Current limit for drivetrain motors. 60A is a reasonable maximum to reduce
     // likelihood of tripping breakers or damaging CIM motors
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
@@ -49,11 +54,11 @@ public final class Constants {
     // Voltage values for various fuel operations. These values may need to be tuned
     // based on exact robot construction.
     // See the Software Guide for tuning information
-    public static final double INTAKING_FEEDER_VALUE = -0.7;
-    public static final double INTAKING_INTAKE_VALUE = 0.5;
-    public static final double LAUNCHING_FEEDER_VALUE = 0.7;
-    public static final double LAUNCHING_LAUNCHER_VALUE = 0.7;
-    public static final double SPIN_UP_FEEDER_VALUE = -0.7;
+    public static final double INTAKING_FEEDER_VALUE = 0.7;
+    public static final double INTAKING_INTAKE_VALUE = -0.5;
+    public static final double LAUNCHING_FEEDER_VALUE = -0.7;
+    public static final double LAUNCHING_LAUNCHER_VALUE = -0.65;
+    public static final double SPIN_UP_FEEDER_VALUE = 0.7;
     public static final double SPIN_UP_SECONDS = 0.5;
   }
 
@@ -65,7 +70,8 @@ public final class Constants {
 
     // This value is multiplied by the joystick value when driving the robot to
     // help avoid driving and turning too fast and being difficult to control
-    public static final double DRIVE_SCALING = .7;
-    public static final double ROTATION_SCALING = .6;
+    public static final double DRIVE_SCALING = .5;
+    public static final double X_ROTATION_SCALING = .3;
+    public static final double Z_ROTATION_SCALING = .5;
   }
 }
