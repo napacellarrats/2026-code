@@ -47,6 +47,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightAlign;
+import frc.robot.LimelightHelpers;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
@@ -72,9 +75,10 @@ public class CANDriveSubsystem extends SubsystemBase {
   private final DutyCycleOut rightOut = new DutyCycleOut(0);
   private final DutyCycleOut leftOut = new DutyCycleOut(0);
 
-  private final DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(pigeon2.getRotation2d(), 0, 0);
-
   private final DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(0.550);
+
+  private final DifferentialDrivePoseEstimator odometry = new DifferentialDrivePoseEstimator(kinematics,
+      pigeon2.getRotation2d(), 0, 0, new Pose2d());
 
   private final Field2d field = new Field2d();
 
@@ -117,7 +121,7 @@ public class CANDriveSubsystem extends SubsystemBase {
         config, // The robot configuration
         () -> {
           // Boolean supplier that controls when the path will be mirrored for the
-          // red  alliance
+          // red alliance
           // This will flip the path being followed to the red side of the field.
           // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
@@ -173,7 +177,8 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   public DifferentialDriveWheelPositions getPositions() {
-    return new DifferentialDriveWheelPositions(rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters), rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
+    return new DifferentialDriveWheelPositions(rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters),
+        rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
   }
 
   public DifferentialDriveWheelSpeeds getSpeeds() {
@@ -185,24 +190,53 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
+    System.out.println("get speeds");
     return kinematics.toChassisSpeeds(getSpeeds());
   }
 
   public Pose2d getPose() {
-    return odometry.getPoseMeters();
+    return odometry.getEstimatedPosition();
   }
 
   public void resetPose(Pose2d pose) {
-    odometry.resetPosition(pigeon2.getRotation2d(), getPositions(), pose);;
+    System.out.println("reset");
+    odometry.resetPosition(pigeon2.getRotation2d(), getPositions(), pose);
+    ;
   }
-  
+
   public void driveRobotRelative(ChassisSpeeds speeds) {
+    System.out.println("driving");
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
     leftLeader.setControl(new VelocityDutyCycle(leftRPS));
     rightLeader.setControl(new VelocityDutyCycle(rightRPS));
+    double[] wheelRps = { leftRPS, rightRPS };
+    SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
+    System.out.print("Wheel RPS: ");
+    System.out.println(wheelRps);
+  }
+
+  public void updateOdometry() {
+    odometry.update(pigeon2.getRotation2d(), rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters),
+        rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
+    
+    boolean doRejectUpdates = false;
+    LimelightHelpers.SetRobotOrientation("limelight", odometry.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+    if (Math.abs(pigeon2.getAngularVelocityZWorld().getValueAsDouble()) > 720) {
+      System.out.print("angular velocity: ");
+      System.out.println(pigeon2.getAngularVelocityZWorld().getValueAsDouble());
+      doRejectUpdates = true;
+    }
+    if (mt2.tagCount == 0) {
+      doRejectUpdates = true;
+    }
+    if (!doRejectUpdates) {
+      odometry.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
+      odometry.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
+    }
   }
 
   @Override
@@ -211,15 +245,15 @@ public class CANDriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    odometry.update(pigeon2.getRotation2d(),
-        rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters),
-        rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
-    field.setRobotPose(odometry.getPoseMeters());
+    updateOdometry();
+    field.setRobotPose(odometry.getEstimatedPosition());
   }
 
   // Direct control for use inside alignment
   public void arcadeDrive(double fwd, double rot) {
-    if (fwd > 0.1 || fwd < -0.1 || rot > 0.1 || rot < -0.1) {
+    fwd += 1;
+    rot += 2;
+    if (fwd > 0.01 || fwd < -0.01 || rot > 0.01 || rot < -0.01) {
       rightOut.Output = fwd + rot;
       leftOut.Output = fwd - rot;
 
