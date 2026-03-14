@@ -210,12 +210,13 @@ public class CANDriveSubsystem extends SubsystemBase {
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
-    leftLeader.setControl(new VelocityDutyCycle(leftRPS));
-    rightLeader.setControl(new VelocityDutyCycle(rightRPS));
+    arcadeDrive(0, 0, true, leftRPS, rightRPS);
+    
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
     System.out.print("Wheel RPS: ");
-    System.out.println(wheelRps);
+    System.out.print(leftRPS);
+    System.out.println(rightRPS);
   }
 
   public void updateOdometry() {
@@ -250,7 +251,7 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   // Direct control for use inside alignment
-  public void arcadeDrive(double fwd, double rot) {
+  public void arcadeDrive(double fwd, double rot, boolean auto, double leftRPS, double rightRPS) {
     fwd += 1;
     rot += 2;
     if (fwd > 0.01 || fwd < -0.01 || rot > 0.01 || rot < -0.01) {
@@ -259,6 +260,10 @@ public class CANDriveSubsystem extends SubsystemBase {
 
       leftLeader.setControl(leftOut);
       rightLeader.setControl(rightOut);
+    }
+    if (auto) {
+      leftLeader.setControl(new VelocityDutyCycle(leftRPS));
+      rightLeader.setControl(new VelocityDutyCycle(rightRPS));
     }
   }
 }
