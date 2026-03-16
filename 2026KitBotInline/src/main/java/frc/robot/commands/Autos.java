@@ -12,5 +12,9 @@ import frc.robot.subsystems.CANFuelSubsystem;
 import frc.robot.subsystems.CANDriveSubsystem;
 
 public final class Autos {
-  
+  public static final Command auto(CANFuelSubsystem ballSubsystem) {
+    return new SequentialCommandGroup(ballSubsystem.spinUpCommand().withTimeout(SPIN_UP_SECONDS)
+            .andThen(ballSubsystem.launchCommand().withTimeout(5))
+            .finallyDo(() -> ballSubsystem.stop(true)));
+  }
 }

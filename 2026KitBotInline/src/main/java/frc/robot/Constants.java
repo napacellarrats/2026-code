@@ -40,6 +40,8 @@ public final class Constants {
     public static final double Y_TOLERANCE_ALIGNMENT = 0.5;
     public static final double DONT_SEE_TAG_WAIT_TIME = 1.0;
     public static final double POSE_VALIDATION_TIME = 3.0;
+
+
   }
 
   public static final class FuelConstants {
@@ -56,7 +58,7 @@ public final class Constants {
     // See the Software Guide for tuning information
     public static final double INTAKING_FEEDER_VALUE = 0.7;
     public static final double INTAKING_INTAKE_VALUE = -0.5;
-    public static final double LAUNCHING_FEEDER_VALUE = -0.7;
+    public static final double LAUNCHING_FEEDER_VALUE = -0.6;
     public static final double LAUNCHING_LAUNCHER_VALUE = -0.65;
     public static final double SPIN_UP_FEEDER_VALUE = 0.7;
     public static final double SPIN_UP_SECONDS = 0.5;
@@ -70,8 +72,8 @@ public final class Constants {
 
     // This value is multiplied by the joystick value when driving the robot to
     // help avoid driving and turning too fast and being difficult to control
-    public static final double DRIVE_SCALING = .5;
-    public static final double X_ROTATION_SCALING = .3;
-    public static final double Z_ROTATION_SCALING = .5;
+    public static final double DRIVE_SCALING = .7;
+    public static final double SLOW_SCALING = .3;
+    public static final double Z_ROTATION_SCALING = .7;
   }
 }

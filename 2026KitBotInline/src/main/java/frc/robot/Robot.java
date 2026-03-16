@@ -4,16 +4,13 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.OperatorConstants.DRIVER_CONTROLLER_PORT;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the

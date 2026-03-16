@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import static frc.robot.Constants.OperatorConstants.*;
 
+import java.net.CookieManager;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import static frc.robot.Constants.FuelConstants.*;
@@ -19,10 +21,14 @@ import static frc.robot.Constants.FuelConstants.*;
 import frc.robot.LimelightAlign.*;
 import frc.robot.commands.AlignToHub;
 import frc.robot.commands.Autos;
+import frc.robot.commands.SpeedControl;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RuntimeType;
+import frc.robot.Constants.DriveConstants;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -35,6 +41,7 @@ public class RobotContainer {
   // The robot's subsystems
   private final CANDriveSubsystem driveSubsystem = new CANDriveSubsystem();
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
+  private final SpeedControl speedControl = new SpeedControl();
 
   // Limelight
   // private final LimelightAlign limelightAlign = new LimelightAlign();
@@ -52,6 +59,7 @@ public class RobotContainer {
   // The autonomous chooser
   private final SendableChooser<Command> autoChooser;
 
+
   // In order to align using limelight
 
   /**
@@ -68,8 +76,8 @@ public class RobotContainer {
     // Autos.driveShootMiddle(driveSubsystem, ballSubsystem));
     // autoChooser.addOption("Drive and shoot from left",
     // Autos.driveShootLeft(driveSubsystem, ballSubsystem));
-    // autoChooser.addOption("Drive and shoot from right",
-    // Autos.driveShootRight(driveSubsystem, ballSubsystem));
+     autoChooser.addOption("Drive and shoot from right",
+     Autos.auto( ballSubsystem));
     SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 
@@ -88,10 +96,10 @@ public class RobotContainer {
 
     // While the left bumper on operator controller is held, intake Fuel
     new JoystickButton(driverController, 2)
-        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop(false)));
 
     new JoystickButton(operatorController, 2)
-        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop(false)));
 
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
@@ -99,15 +107,25 @@ public class RobotContainer {
     new JoystickButton(driverController, 1)
         .whileTrue(ballSubsystem.spinUpCommand().withTimeout(SPIN_UP_SECONDS)
             .andThen(ballSubsystem.launchCommand())
-            .finallyDo(() -> ballSubsystem.stop()));
+            .finallyDo(() -> ballSubsystem.stop(true)));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     new JoystickButton(driverController, 3)
-        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop(false)));
 
     // Auto-alignment for shooting
     new JoystickButton(driverController, 4)
         .onTrue(new AlignToHub(driveSubsystem).withTimeout(3));
+    
+    // Attempt to unjam
+    new JoystickButton(driverController, 5)
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.unjam(), () -> ballSubsystem.stop(false)));
+
+    // Slow mode
+    new JoystickButton(driverController, 11)
+        .whileTrue(speedControl.runEnd(() -> speedControl.scaleSpeed(true), () -> speedControl.scaleSpeed(false)));
+
+
 
     // Set the default command for the drive subsystem to the command provided by
     // factory with the values provided by the joystick axes on the driver
@@ -116,8 +134,9 @@ public class RobotContainer {
     // value). The X-axis is also inverted so a positive value (stick to the right)
     // results in clockwise rotation (front of the robot turning right). Both axes
     // are also scaled down so the rotation is more easily controllable.
+    
     driveSubsystem.setDefaultCommand(
-        driveSubsystem.run(() -> driveSubsystem.arcadeDrive(-Math.pow(2, driverController.getY()),
+        driveSubsystem.run(() -> driveSubsystem.arcadeDrive(-Math.pow(2, -driverController.getY()),
             ((-Math.pow(2, driverController.getX())) - (Math.pow(2, driverController.getZ()))), false, 0, 0)));
   }
 

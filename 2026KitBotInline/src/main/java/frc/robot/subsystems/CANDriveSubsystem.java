@@ -12,6 +12,7 @@ import static frc.robot.Constants.DriveConstants.LEFT_LEADER_ID;
 import static frc.robot.Constants.DriveConstants.PIGEON2_ID;
 import static frc.robot.Constants.DriveConstants.RIGHT_FOLLOWER_ID;
 import static frc.robot.Constants.DriveConstants.RIGHT_LEADER_ID;
+import static frc.robot.Constants.OperatorConstants.DRIVE_SCALING;
 
 import java.util.function.DoubleSupplier;
 
@@ -21,11 +22,6 @@ import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPLTVController;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Pigeon2Configurator;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -48,6 +44,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightAlign;
 import frc.robot.LimelightHelpers;
+import frc.robot.RobotContainer;
+import frc.robot.variables;
+import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -58,6 +57,9 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+
+
+
 
 public class CANDriveSubsystem extends SubsystemBase {
   private final CANBus kCanBus = new CANBus("rio");
@@ -204,6 +206,7 @@ public class CANDriveSubsystem extends SubsystemBase {
     ;
   }
 
+
   public void driveRobotRelative(ChassisSpeeds speeds) {
     System.out.println("driving");
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
@@ -211,7 +214,7 @@ public class CANDriveSubsystem extends SubsystemBase {
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
     arcadeDrive(0, 0, true, leftRPS, rightRPS);
-    
+
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
     System.out.print("Wheel RPS: ");
@@ -222,9 +225,10 @@ public class CANDriveSubsystem extends SubsystemBase {
   public void updateOdometry() {
     odometry.update(pigeon2.getRotation2d(), rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters),
         rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
-    
+
     boolean doRejectUpdates = false;
-    LimelightHelpers.SetRobotOrientation("limelight", odometry.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    LimelightHelpers.SetRobotOrientation("limelight", odometry.getEstimatedPosition().getRotation().getDegrees(), 0, 0,
+        0, 0, 0);
     LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
     if (Math.abs(pigeon2.getAngularVelocityZWorld().getValueAsDouble()) > 720) {
       System.out.print("angular velocity: ");
@@ -235,7 +239,7 @@ public class CANDriveSubsystem extends SubsystemBase {
       doRejectUpdates = true;
     }
     if (!doRejectUpdates) {
-      odometry.setVisionMeasurementStdDevs(VecBuilder.fill(0.7,0.7,9999999));
+      odometry.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
       odometry.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
     }
   }
@@ -252,11 +256,21 @@ public class CANDriveSubsystem extends SubsystemBase {
 
   // Direct control for use inside alignment
   public void arcadeDrive(double fwd, double rot, boolean auto, double leftRPS, double rightRPS) {
+    System.out.println(fwd);
+    System.out.println(rot);
     fwd += 1;
     rot += 2;
-    if (fwd > 0.01 || fwd < -0.01 || rot > 0.01 || rot < -0.01) {
+    fwd = -fwd;
+
+    if (fwd > 0.1 || fwd < -0.08 || rot > 0.08 || rot < -0.08 && !DriverStation.isAutonomous()) {
+      fwd *= variables.scaling;
+      rot *= variables.scaling;
+
       rightOut.Output = fwd + rot;
       leftOut.Output = fwd - rot;
+      System.out.print("drive value: ");
+      System.out.print(fwd);
+      System.out.println(rot);
 
       leftLeader.setControl(leftOut);
       rightLeader.setControl(rightOut);
