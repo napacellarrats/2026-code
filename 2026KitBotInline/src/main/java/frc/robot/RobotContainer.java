@@ -21,13 +21,13 @@ import static frc.robot.Constants.FuelConstants.*;
 import frc.robot.LimelightAlign.*;
 import frc.robot.commands.AlignToHub;
 import frc.robot.commands.Autos;
-import frc.robot.commands.SpeedControl;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RuntimeType;
 import frc.robot.Constants.DriveConstants;
+import edu.wpi.first.wpilibj2.command.Commands;
 
 
 /**
@@ -41,7 +41,6 @@ public class RobotContainer {
   // The robot's subsystems
   private final CANDriveSubsystem driveSubsystem = new CANDriveSubsystem();
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
-  private final SpeedControl speedControl = new SpeedControl();
 
   // Limelight
   // private final LimelightAlign limelightAlign = new LimelightAlign();
@@ -123,7 +122,7 @@ public class RobotContainer {
 
     // Slow mode
     new JoystickButton(driverController, 11)
-        .whileTrue(speedControl.runEnd(() -> speedControl.scaleSpeed(true), () -> speedControl.scaleSpeed(false)));
+        .whileTrue(Commands.runEnd(() -> variables.scaling *= 0.3, () -> variables.scaling *= 0.7));
 
 
 

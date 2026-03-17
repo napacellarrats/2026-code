@@ -58,9 +58,6 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 
-
-
-
 public class CANDriveSubsystem extends SubsystemBase {
   private final CANBus kCanBus = new CANBus("rio");
 
@@ -206,7 +203,6 @@ public class CANDriveSubsystem extends SubsystemBase {
     ;
   }
 
-
   public void driveRobotRelative(ChassisSpeeds speeds) {
     System.out.println("driving");
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
@@ -261,10 +257,10 @@ public class CANDriveSubsystem extends SubsystemBase {
     fwd += 1;
     rot += 2;
     fwd = -fwd;
+    fwd *= variables.scaling;
+    rot *= variables.scaling;
 
     if (fwd > 0.1 || fwd < -0.08 || rot > 0.08 || rot < -0.08 && !DriverStation.isAutonomous()) {
-      fwd *= variables.scaling;
-      rot *= variables.scaling;
 
       rightOut.Output = fwd + rot;
       leftOut.Output = fwd - rot;
