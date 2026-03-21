@@ -74,19 +74,19 @@ public class AlignToHub extends Command {
                 xSpeed = Math.max(xSpeed, -0.5);
             }
 
-            driveSubsystem.arcadeDrive(0.0, xSpeed, false, 0, 0);
+            driveSubsystem.arcadeDrive(0.0, xSpeed);
 
             if (!yController.atSetpoint() || !xController.atSetpoint()) {
                 stopTimer.reset();
             }
         } else {
-            driveSubsystem.arcadeDrive(0.0, 0.0, false, 0, 0);
+            driveSubsystem.arcadeDrive(0.0, 0.0);
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        driveSubsystem.arcadeDrive(0.0, 0.0, false, 0,0);
+        driveSubsystem.arcadeDrive(0.0, 0.0);
     }
 
     @Override

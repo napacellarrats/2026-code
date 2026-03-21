@@ -24,6 +24,7 @@ import frc.robot.commands.Autos;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RuntimeType;
 import frc.robot.Constants.DriveConstants;
@@ -133,10 +134,10 @@ public class RobotContainer {
     // value). The X-axis is also inverted so a positive value (stick to the right)
     // results in clockwise rotation (front of the robot turning right). Both axes
     // are also scaled down so the rotation is more easily controllable.
-    
+
     driveSubsystem.setDefaultCommand(
         driveSubsystem.run(() -> driveSubsystem.arcadeDrive(-Math.pow(2, -driverController.getY()),
-            ((-Math.pow(2, driverController.getX())) - (Math.pow(2, driverController.getZ()))), false, 0, 0)));
+            ((-Math.pow(2, driverController.getX())) - (Math.pow(2, driverController.getZ()))))));
   }
 
   /**

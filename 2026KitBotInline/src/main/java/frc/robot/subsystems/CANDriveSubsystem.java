@@ -5,6 +5,8 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.DriveConstants.ALIGNMENT_P;
+import static frc.robot.Constants.DriveConstants.ALIGNMENT_V;
 import static frc.robot.Constants.DriveConstants.DRIVE_GEAR_RATIO;
 import static frc.robot.Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.LEFT_FOLLOWER_ID;
@@ -16,7 +18,6 @@ import static frc.robot.Constants.OperatorConstants.DRIVE_SCALING;
 
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -62,7 +63,7 @@ public class CANDriveSubsystem extends SubsystemBase {
   private final CANBus kCanBus = new CANBus("rio");
 
   private final double kGearRatio = DRIVE_GEAR_RATIO;
-  private final Distance kWheelRadius = Inches.of(3);
+  private final Distance kWheelRadius = Meters.of(0.1524);
 
   private final TalonFX rightLeader = new TalonFX(RIGHT_LEADER_ID, kCanBus);
   private final TalonFX leftLeader = new TalonFX(LEFT_LEADER_ID, kCanBus);
@@ -94,6 +95,8 @@ public class CANDriveSubsystem extends SubsystemBase {
     BaseStatusSignal.setUpdateFrequencyForAll(100,
         leftLeader.getPosition(),
         rightLeader.getPosition(),
+        leftLeader.getVelocity(),
+        rightLeader.getVelocity(),
         pigeon2.getYaw());
 
     rightOut.UpdateFreqHz = 0;
@@ -143,6 +146,9 @@ public class CANDriveSubsystem extends SubsystemBase {
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
+    apply.Slot0.kP = ALIGNMENT_P;
+    apply.Slot0.kV = ALIGNMENT_V; // Needs tuning
+
     cfg.apply(apply);
 
     cfg.setPosition(0);
@@ -154,6 +160,9 @@ public class CANDriveSubsystem extends SubsystemBase {
     apply.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    apply.Slot0.kP = ALIGNMENT_P;
+    apply.Slot0.kV = ALIGNMENT_V;
 
     cfg.apply(apply);
 
@@ -189,7 +198,6 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    System.out.println("get speeds");
     return kinematics.toChassisSpeeds(getSpeeds());
   }
 
@@ -198,24 +206,19 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   public void resetPose(Pose2d pose) {
-    System.out.println("reset");
     odometry.resetPosition(pigeon2.getRotation2d(), getPositions(), pose);
-    ;
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    System.out.println("driving");
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
-    arcadeDrive(0, 0, true, leftRPS, rightRPS);
+    leftLeader.setControl(new VelocityDutyCycle(leftRPS));
+    rightLeader.setControl(new VelocityDutyCycle(rightRPS));
 
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
-    System.out.print("Wheel RPS: ");
-    System.out.print(leftRPS);
-    System.out.println(rightRPS);
   }
 
   public void updateOdometry() {
@@ -227,8 +230,6 @@ public class CANDriveSubsystem extends SubsystemBase {
         0, 0, 0);
     LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
     if (Math.abs(pigeon2.getAngularVelocityZWorld().getValueAsDouble()) > 720) {
-      System.out.print("angular velocity: ");
-      System.out.println(pigeon2.getAngularVelocityZWorld().getValueAsDouble());
       doRejectUpdates = true;
     }
     if (mt2.tagCount == 0) {
@@ -251,29 +252,19 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   // Direct control for use inside alignment
-  public void arcadeDrive(double fwd, double rot, boolean auto, double leftRPS, double rightRPS) {
-    System.out.println(fwd);
-    System.out.println(rot);
+  public void arcadeDrive(double fwd, double rot) {
     fwd += 1;
     rot += 2;
     fwd = -fwd;
     fwd *= variables.scaling;
     rot *= variables.scaling;
 
-    if (fwd > 0.1 || fwd < -0.08 || rot > 0.08 || rot < -0.08 && !DriverStation.isAutonomous()) {
-
+    if ((fwd > 0.1 || fwd < -0.1 || rot > 0.1 || rot < -0.1) && !DriverStation.isAutonomous()) {
       rightOut.Output = fwd + rot;
       leftOut.Output = fwd - rot;
-      System.out.print("drive value: ");
-      System.out.print(fwd);
-      System.out.println(rot);
 
       leftLeader.setControl(leftOut);
       rightLeader.setControl(rightOut);
-    }
-    if (auto) {
-      leftLeader.setControl(new VelocityDutyCycle(leftRPS));
-      rightLeader.setControl(new VelocityDutyCycle(rightRPS));
     }
   }
 }
