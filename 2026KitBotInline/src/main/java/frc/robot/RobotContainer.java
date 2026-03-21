@@ -122,33 +122,31 @@ public class RobotContainer {
                 .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.unjam(), () -> ballSubsystem.stop(false)));
 
         // Slow mode
-        // new JoystickButton(driverController, 11)
-        // .whileTrue(Commands.runEnd(() -> variables.scaling = 0.3, () ->
-        // variables.scaling = 0.5));
+        new JoystickButton(driverController, 11)
+                .whileTrue(Commands.runEnd(() -> variables.scaling = 0.3, () -> variables.scaling = 0.5));
 
-        // // Fast mode
-        // new JoystickButton(driverController, 9)
-        // .whileTrue(Commands.runEnd(() -> variables.scaling = 0.7, () ->
-        // variables.scaling = 0.5));
+        // Fast mode
+        new JoystickButton(driverController, 9)
+                .whileTrue(Commands.runEnd(() -> variables.scaling = 0.7, () -> variables.scaling = 0.5));
 
         // Tests
-        new JoystickButton(driverController, 12)
-                .whileTrue(Commands.runOnce(SignalLogger::start));
+        // new JoystickButton(driverController, 12)
+        // .whileTrue(Commands.runOnce(SignalLogger::start));
 
-        new JoystickButton(driverController, 11)
-                .whileTrue(Commands.runOnce(SignalLogger::stop));
+        // new JoystickButton(driverController, 11)
+        // .whileTrue(Commands.runOnce(SignalLogger::stop));
 
-        new JoystickButton(driverController, 10)
-                .whileTrue(driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        // new JoystickButton(driverController, 10)
+        // .whileTrue(driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
 
-        new JoystickButton(driverController, 9)
-                .whileTrue(driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        // new JoystickButton(driverController, 9)
+        // .whileTrue(driveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
-        new JoystickButton(driverController, 8)
-                .whileTrue(driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        // new JoystickButton(driverController, 8)
+        // .whileTrue(driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
 
-        new JoystickButton(driverController, 7)
-                .whileTrue(driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+        // new JoystickButton(driverController, 7)
+        // .whileTrue(driveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
         // Set the default command for the drive subsystem to the command provided by
         // factory with the values provided by the joystick axes on the driver
