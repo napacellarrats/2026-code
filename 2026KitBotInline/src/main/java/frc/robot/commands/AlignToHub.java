@@ -15,8 +15,8 @@ public class AlignToHub extends Command {
     private final CANDriveSubsystem driveSubsystem;
 
     public AlignToHub(CANDriveSubsystem driveSubsystem) {
-        xController = new PIDController(DriveConstants.X_ALIGNMENT_P, 0, 0);
-        yController = new PIDController(DriveConstants.Y_ALIGNMENT_P, 0, 0);
+        xController = new PIDController(DriveConstants.ALIGNMENT_P, 0, 0);
+        yController = new PIDController(DriveConstants.ALIGNMENT_P, 0, 0);
         this.driveSubsystem = driveSubsystem;
         addRequirements(driveSubsystem);
     }

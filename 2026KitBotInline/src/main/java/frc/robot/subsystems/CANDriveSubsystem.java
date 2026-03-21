@@ -20,6 +20,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPLTVController;
@@ -30,6 +31,7 @@ import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -43,6 +45,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightAlign;
 import frc.robot.LimelightHelpers;
 import frc.robot.RobotContainer;
@@ -82,12 +85,24 @@ public class CANDriveSubsystem extends SubsystemBase {
 
   private final Field2d field = new Field2d();
 
+  private final VoltageOut voltout = new VoltageOut(0.0);
+
+  private final SysIdRoutine sysid = new SysIdRoutine(
+      new SysIdRoutine.Config(null, Volts.of(4), null, (state) -> SignalLogger.writeString("state", state.toString())),
+      new SysIdRoutine.Mechanism((volts) -> {
+        leftLeader.setControl(voltout.withOutput(volts.in(Volts)));
+        rightLeader.setControl(voltout.withOutput(volts.in(Volts)));
+      }, null, this));
+
   public CANDriveSubsystem() {
     initializeRightDrive(rightLeader.getConfigurator());
     initializeRightDrive(rightFollower.getConfigurator());
     initializeLeftDrive(leftLeader.getConfigurator());
     initializeLeftDrive(leftFollower.getConfigurator());
     initializePigeon2(pigeon2.getConfigurator());
+
+    leftLeader.setSafetyEnabled(true);
+    rightLeader.setSafetyEnabled(true);
 
     leftFollower.setControl(new Follower(leftLeader.getDeviceID(), MotorAlignmentValue.Aligned));
     rightFollower.setControl(new Follower(rightLeader.getDeviceID(), MotorAlignmentValue.Aligned));
@@ -214,8 +229,8 @@ public class CANDriveSubsystem extends SubsystemBase {
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
-    leftLeader.setControl(new VelocityDutyCycle(leftRPS));
-    rightLeader.setControl(new VelocityDutyCycle(rightRPS));
+    leftLeader.setControl(new VelocityDutyCycle(100));
+    rightLeader.setControl(new VelocityDutyCycle(100));
 
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
@@ -241,6 +256,14 @@ public class CANDriveSubsystem extends SubsystemBase {
     }
   }
 
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysid.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysid.dynamic(direction);
+  }
+
   @Override
   public void simulationPeriodic() {
   }
@@ -259,7 +282,10 @@ public class CANDriveSubsystem extends SubsystemBase {
     fwd *= variables.scaling;
     rot *= variables.scaling;
 
-    if ((fwd > 0.1 || fwd < -0.1 || rot > 0.1 || rot < -0.1) && !DriverStation.isAutonomous()) {
+    System.out.print("scaling: ");
+    System.out.println(variables.scaling);
+
+    if ((fwd > 0.1 || fwd < -0.1 || rot > 0.1 || rot < -0.1) && DriverStation.isTeleop()) {
       rightOut.Output = fwd + rot;
       leftOut.Output = fwd - rot;
 

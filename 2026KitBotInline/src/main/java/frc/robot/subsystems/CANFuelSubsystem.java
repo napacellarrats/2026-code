@@ -31,10 +31,10 @@ public class CANFuelSubsystem extends SubsystemBase {
 
     feederConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-    feederMotor.getConfigurator().apply(feederConfiguration);
+    feederConfiguration.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.25;
+    launcherIntakeConfiguration.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.25;
 
-    feederMotor.setSafetyEnabled(true);
-    launcherIntakeMotor.setSafetyEnabled(true);
+    feederMotor.getConfigurator().apply(feederConfiguration);
   }
 
   public void launch() {
@@ -81,8 +81,10 @@ public class CANFuelSubsystem extends SubsystemBase {
   public void unjam() {
     feederout.Output = SPIN_UP_FEEDER_VALUE;
     launcherIntakeout.Output = -LAUNCHING_LAUNCHER_VALUE;
-    feederMotor.setControl(feederout);  
-    launcherIntakeMotor.setControl(launcherIntakeout);
+    if (Math.abs(launcherIntakeMotor.getVelocity().getValueAsDouble()) < 10) {
+      feederMotor.setControl(feederout);
+      launcherIntakeMotor.setControl(launcherIntakeout);
+    }
   }
 
   public void spinUp() {
