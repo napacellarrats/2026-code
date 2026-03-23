@@ -32,8 +32,10 @@ public final class Constants {
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
 
     // Alignment values
-    public static final double ALIGNMENT_P = 0.1;
-    public static final double ALIGNMENT_V = 0.1; // needs tuning
+    public static final double ALIGNMENT_P = 0.15235;
+    public static final double ALIGNMENT_S = 0.14774;
+    public static final double ALIGNMENT_V = 0.10982;
+    public static final double ALIGNMENT_A = 0.003508;
     public static final double X_SETPOINT_ALIGNMENT = 0.0;
     public static final double Y_SETPOINT_ALIGNMENT = 4.0;
     public static final double X_TOLERANCE_ALIGNMENT = 0.5;

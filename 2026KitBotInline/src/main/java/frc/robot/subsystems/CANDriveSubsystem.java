@@ -6,7 +6,9 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.ALIGNMENT_P;
+import static frc.robot.Constants.DriveConstants.ALIGNMENT_S;
 import static frc.robot.Constants.DriveConstants.ALIGNMENT_V;
+import static frc.robot.Constants.DriveConstants.ALIGNMENT_A;
 import static frc.robot.Constants.DriveConstants.DRIVE_GEAR_RATIO;
 import static frc.robot.Constants.DriveConstants.DRIVE_MOTOR_CURRENT_LIMIT;
 import static frc.robot.Constants.DriveConstants.LEFT_FOLLOWER_ID;
@@ -66,7 +68,7 @@ public class CANDriveSubsystem extends SubsystemBase {
   private final CANBus kCanBus = new CANBus("rio");
 
   private final double kGearRatio = DRIVE_GEAR_RATIO;
-  private final Distance kWheelRadius = Meters.of(0.1524);
+  private final Distance kWheelRadius = Meters.of(0.0762);
 
   private final TalonFX rightLeader = new TalonFX(RIGHT_LEADER_ID, kCanBus);
   private final TalonFX leftLeader = new TalonFX(LEFT_LEADER_ID, kCanBus);
@@ -161,8 +163,12 @@ public class CANDriveSubsystem extends SubsystemBase {
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
+
+    apply.Slot0.kS = ALIGNMENT_S;
+    apply.Slot0.kV = ALIGNMENT_V;
+    apply.Slot0.kA = ALIGNMENT_A;
+
     apply.Slot0.kP = ALIGNMENT_P;
-    apply.Slot0.kV = ALIGNMENT_V; // Needs tuning
 
     cfg.apply(apply);
 
@@ -176,8 +182,11 @@ public class CANDriveSubsystem extends SubsystemBase {
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-    apply.Slot0.kP = ALIGNMENT_P;
+    apply.Slot0.kS = ALIGNMENT_S;
     apply.Slot0.kV = ALIGNMENT_V;
+    apply.Slot0.kA = ALIGNMENT_A;
+
+    apply.Slot0.kP = ALIGNMENT_P;
 
     cfg.apply(apply);
 
@@ -229,9 +238,16 @@ public class CANDriveSubsystem extends SubsystemBase {
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
-    leftLeader.setControl(new VelocityDutyCycle(100));
-    rightLeader.setControl(new VelocityDutyCycle(100));
+    leftLeader.setControl(new VelocityDutyCycle(leftRPS));
+    rightLeader.setControl(new VelocityDutyCycle(rightRPS));
 
+
+    System.out.print("speeds: ");
+    System.out.println(wheelSpeeds.leftMetersPerSecond);
+
+
+    System.out.print("rps: ");
+    System.out.println(leftRPS);
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
   }
