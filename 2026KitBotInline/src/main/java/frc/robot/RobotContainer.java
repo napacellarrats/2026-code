@@ -77,7 +77,7 @@ public class RobotContainer {
         // autoChooser.addOption("Drive and shoot from left",
         // Autos.driveShootLeft(driveSubsystem, ballSubsystem));
         autoChooser.addOption("Drive and shoot from right",
-                Autos.auto(ballSubsystem));
+        Autos.auto(ballSubsystem));
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 

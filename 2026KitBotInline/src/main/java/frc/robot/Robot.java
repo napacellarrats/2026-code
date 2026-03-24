@@ -4,13 +4,13 @@
 
 package frc.robot;
 
-
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -62,6 +62,14 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    double periodTime = 0;
+    String period = "";
+    getCurrentMatchPeriodAndTime(periodTime, period);
+
+    SmartDashboard.putString("Match Period", period);
+    SmartDashboard.putNumber("Period Time", periodTime);
+    SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -83,7 +91,8 @@ public class Robot extends TimedRobot {
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
-      CommandScheduler.getInstance().schedule(m_autonomousCommand);;
+      CommandScheduler.getInstance().schedule(m_autonomousCommand);
+      ;
     }
   }
 
@@ -128,5 +137,66 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
+  }
+
+  private void getCurrentMatchPeriodAndTime(double periodTime, String period) {
+    if (DriverStation.isEStopped()) {
+      period = "E-Stopped";
+      return;
+    }
+
+    double rawMatchTime = DriverStation.getMatchTime();
+    boolean hasMatchTime = rawMatchTime >= 0.0;
+    double matchTime = hasMatchTime ? rawMatchTime : 0.0;
+
+    if (DriverStation.isAutonomous()) {
+      period = DriverStation.isEnabled() ? "AUTO" : "AUTO (Disabled)";
+      periodTime = hasMatchTime ? rawMatchTime : 0;
+      return;
+    }
+
+    if (DriverStation.isTeleop()) {
+      if (!hasMatchTime) {
+        period = DriverStation.isEnabled() ? "TELEOP" : "TELEOP (Disabled)";
+        return;
+      }
+      if (!DriverStation.isEnabled() && matchTime <= 0.0) {
+        period = "TELEOP (Disabled)";
+        periodTime = matchTime;
+        return;
+      } else if (matchTime > 130.0) {
+        period = "TRANSITION SHIFT";
+        periodTime = matchTime - 130;
+        return;
+      } else if (matchTime > 105.0) {
+        period = "SHIFT 1";
+        periodTime = matchTime - 105;
+        return;
+      } else if (matchTime > 80.0) {
+        period = "SHIFT 2";
+        periodTime = matchTime - 80;
+        return;
+      } else if (matchTime > 55.0) {
+        period = "SHIFT 3";
+        periodTime = matchTime - 55;
+        return;
+      } else if (matchTime > 30.0) {
+        period = "SHIFT 4";
+        periodTime = matchTime - 30;
+        return;
+      } else {
+        period = "END GAME";
+        periodTime = matchTime;
+        return;
+      }
+    }
+
+    if (DriverStation.isTest()) {
+      period = DriverStation.isEnabled() ? "Test" : "Test (Disabled)";
+      periodTime = 0;
+      return;
+    }
+
+    period = "Disabled";
   }
 }
