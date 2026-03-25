@@ -26,6 +26,7 @@ import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPLTVController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.configs.Pigeon2Configurator;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -66,6 +67,9 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 
 public class CANDriveSubsystem extends SubsystemBase {
+  private static final double AUTO_CONTROLLER_DT_SECONDS = 0.02;
+  private static final double FALLBACK_MAX_DRIVE_SPEED_METERS_PER_SECOND = 5.45;
+
   private final CANBus kCanBus = new CANBus("rio");
 
   private final double kGearRatio = DRIVE_GEAR_RATIO;
@@ -82,6 +86,7 @@ public class CANDriveSubsystem extends SubsystemBase {
   private final DutyCycleOut leftOut = new DutyCycleOut(0);
 
   private final DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(0.550);
+  private final double autoMaxDriveSpeedMetersPerSecond;
 
   private final DifferentialDrivePoseEstimator odometry = new DifferentialDrivePoseEstimator(kinematics,
       pigeon2.getRotation2d(), 0, 0, new Pose2d());
@@ -129,15 +134,19 @@ public class CANDriveSubsystem extends SubsystemBase {
       e.printStackTrace();
     }
 
+    autoMaxDriveSpeedMetersPerSecond = config != null
+        ? config.moduleConfig.maxDriveVelocityMPS
+        : FALLBACK_MAX_DRIVE_SPEED_METERS_PER_SECOND;
+
     AutoBuilder.configure(
         this::getPose, // Robot pose supplier
         this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
         this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that willdrive the robot given ROBOT RELATIVE
-                                                              // ChassisSpeeds. Also optionally outputs individual
-                                                              // module feed forwards
-        new PPLTVController(0.02), // PPLTVController is the built in path following controller for differential
-                                   // drive trains
+        this::driveAutoRobotRelative,
+        // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds and
+        // feedforwards
+        new PPLTVController(AUTO_CONTROLLER_DT_SECONDS, autoMaxDriveSpeedMetersPerSecond),
+        // Match the controller lookup table to the configured drivetrain max speed
         config, // The robot configuration
         () -> {
           // Boolean supplier that controls when the path will be mirrored for the
@@ -163,7 +172,6 @@ public class CANDriveSubsystem extends SubsystemBase {
     apply.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
 
     apply.Slot0.kS = ALIGNMENT_S;
     apply.Slot0.kV = ALIGNMENT_V;
@@ -235,27 +243,52 @@ public class CANDriveSubsystem extends SubsystemBase {
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
+    driveAutoRobotRelative(speeds, DriveFeedforwards.zeros(2));
+  }
+
+  private void driveAutoRobotRelative(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
     DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds);
+    System.out.print("speeds: ");
+    System.out.println(wheelSpeeds.leftMetersPerSecond);
+    saturateWheelSpeeds(wheelSpeeds);
+
     double leftRPS = wheelSpeeds.leftMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
     double rightRPS = wheelSpeeds.rightMetersPerSecond / (Math.PI * 0.152) * DRIVE_GEAR_RATIO;
 
     leftLeader.setControl(new VelocityDutyCycle(leftRPS));
     rightLeader.setControl(new VelocityDutyCycle(rightRPS));
 
-
-    System.out.print("speeds: ");
-    System.out.println(wheelSpeeds.leftMetersPerSecond);
-
-
     System.out.print("rps: ");
     System.out.println(leftRPS);
+    double[] wheelMps = { wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond };
+    SmartDashboard.putNumberArray("Target Wheel Mps", wheelMps);
     double[] wheelRps = { leftRPS, rightRPS };
     SmartDashboard.putNumberArray("Wheel Rps", wheelRps);
+  }
+
+  private void saturateWheelSpeeds(DifferentialDriveWheelSpeeds wheelSpeeds) {
+    double maxRequestedSpeed = Math.max(
+        Math.abs(wheelSpeeds.leftMetersPerSecond),
+        Math.abs(wheelSpeeds.rightMetersPerSecond));
+
+    if (maxRequestedSpeed <= autoMaxDriveSpeedMetersPerSecond || maxRequestedSpeed == 0.0) {
+      return;
+    }
+
+    double scale = autoMaxDriveSpeedMetersPerSecond / maxRequestedSpeed;
+    wheelSpeeds.leftMetersPerSecond *= scale;
+    wheelSpeeds.rightMetersPerSecond *= scale;
   }
 
   public void updateOdometry() {
     odometry.update(pigeon2.getRotation2d(), rotationsToMeters(leftLeader.getPosition().getValue()).in(Meters),
         rotationsToMeters(rightLeader.getPosition().getValue()).in(Meters));
+
+    // Let PathPlanner autos run from wheel odometry + gyro only. Injecting vision here can
+    // create large pose jumps that the path follower reacts to with runaway speed requests.
+    if (DriverStation.isAutonomousEnabled()) {
+      return;
+    }
 
     boolean doRejectUpdates = false;
     LimelightHelpers.SetRobotOrientation("limelight", odometry.getEstimatedPosition().getRotation().getDegrees(), 0, 0,

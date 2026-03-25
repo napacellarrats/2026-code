@@ -3,41 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.541,
-        "y": 4.009872573650881
+        "x": 3.9320856277533043,
+        "y": 7.395585765418502
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.541,
-        "y": 4.009872573650881
+        "x": 7.494822670016521,
+        "y": 7.592455000688325
       },
       "isLocked": false,
-      "linkedName": "Shoot"
+      "linkedName": "Left Trench Start"
     },
     {
       "anchor": {
-        "x": 4.155506419400855,
-        "y": 7.405520684736091
+        "x": 7.907463303620595,
+        "y": 4.16456093405837
       },
       "prevControl": {
-        "x": 2.105189742282041,
-        "y": 7.510665129716542
-      },
-      "nextControl": {
-        "x": 6.678544935805991,
-        "y": 7.276134094151213
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 8.005331988229626,
-        "y": 3.4209626669190527
-      },
-      "prevControl": {
-        "x": 7.8344956721503305,
-        "y": 5.249982748829845
+        "x": 8.089995568901431,
+        "y": 6.974757967373351
       },
       "nextControl": null,
       "isLocked": false,
@@ -50,14 +34,14 @@
   "eventMarkers": [
     {
       "name": "Intake",
-      "waypointRelativePos": 1.2231707829301073,
-      "endWaypointRelativePos": 1.215011760752688,
+      "waypointRelativePos": 0.2,
+      "endWaypointRelativePos": null,
       "command": null
     }
   ],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxAcceleration": 2.94,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
