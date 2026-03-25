@@ -64,6 +64,23 @@ public final class Constants {
     public static final double LAUNCHING_LAUNCHER_VALUE = -0.65;
     public static final double SPIN_UP_FEEDER_VALUE = 0.7;
     public static final double SPIN_UP_SECONDS = 0.5;
+
+    public static final double SHOOTER_KP = 0.18;
+    public static final double SHOOTER_KS = 0.0;
+    public static final double SHOOTER_KV = 0.113;
+    public static final double SHOOTER_DIRECTION_SIGN = -1.0;
+    public static final double DEFAULT_SHOOTER_RPS = 68.0;
+    public static final double DEFAULT_SHOOTER_RANGE_METERS = 2.5;
+    public static final double SHOOTER_RPS_TOLERANCE = 3.0;
+    public static final double SHOOTER_TX_TOLERANCE_DEGREES = 1.0;
+    public static final double SHOOTER_MAX_ALIGN_TURN = 0.5;
+    public static final double[][] SHOOTER_RANGE_TO_RPS = {
+        { 1.5, 62.0 },
+        { 2.0, 65.0 },
+        { 2.5, 68.0 },
+        { 3.0, 71.0 },
+        { 3.5, 74.0 }
+    };
   }
 
   public static final class OperatorConstants {

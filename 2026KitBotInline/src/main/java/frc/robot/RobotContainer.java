@@ -22,6 +22,7 @@ import static frc.robot.Constants.FuelConstants.*;
 
 import frc.robot.LimelightAlign.*;
 import frc.robot.commands.AlignToHub;
+import frc.robot.commands.AutoAlignShoot;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.CANDriveSubsystem;
 import frc.robot.subsystems.CANFuelSubsystem;
@@ -115,7 +116,7 @@ public class RobotContainer {
 
         // Auto-alignment for shooting
         new JoystickButton(driverController, 4)
-                .onTrue(new AlignToHub(driveSubsystem).withTimeout(3));
+                .whileTrue(new AutoAlignShoot(driveSubsystem, ballSubsystem));
 
         // Attempt to unjam
         new JoystickButton(driverController, 5)

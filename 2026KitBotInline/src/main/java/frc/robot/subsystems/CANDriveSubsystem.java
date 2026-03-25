@@ -324,6 +324,22 @@ public class CANDriveSubsystem extends SubsystemBase {
     field.setRobotPose(odometry.getEstimatedPosition());
   }
 
+  public void setOpenLoop(double leftPercent, double rightPercent) {
+    leftOut.Output = leftPercent;
+    rightOut.Output = rightPercent;
+
+    leftLeader.setControl(leftOut);
+    rightLeader.setControl(rightOut);
+  }
+
+  public void turnInPlace(double turnPercent) {
+    setOpenLoop(-turnPercent, turnPercent);
+  }
+
+  public void stopDrive() {
+    setOpenLoop(0.0, 0.0);
+  }
+
   // Direct control for use inside alignment
   public void arcadeDrive(double fwd, double rot) {
     fwd += 1;

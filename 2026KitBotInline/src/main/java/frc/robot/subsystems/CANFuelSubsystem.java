@@ -7,10 +7,12 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.FuelConstants.*;
@@ -22,76 +24,108 @@ public class CANFuelSubsystem extends SubsystemBase {
   private final TalonFX launcherIntakeMotor = new TalonFX(INTAKE_LAUNCHER_MOTOR_ID, kCanBus);
 
   private final DutyCycleOut feederout = new DutyCycleOut(0);
-  private final DutyCycleOut launcherIntakeout = new DutyCycleOut(0);
+  private final VelocityVoltage launcherVelocityRequest = new VelocityVoltage(0);
+  private final InterpolatingDoubleTreeMap shooterRpsByRangeMeters = new InterpolatingDoubleTreeMap();
+
+  private double shooterTargetRps = 0.0;
 
   public CANFuelSubsystem() {
-    // incase we need this
     var feederConfiguration = new TalonFXConfiguration();
     var launcherIntakeConfiguration = new TalonFXConfiguration();
 
     feederConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-
     feederConfiguration.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.25;
-    launcherIntakeConfiguration.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = 0.25;
+    launcherIntakeConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    launcherIntakeConfiguration.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.25;
+    launcherIntakeConfiguration.Slot0.kP = SHOOTER_KP;
+    launcherIntakeConfiguration.Slot0.kS = SHOOTER_KS;
+    launcherIntakeConfiguration.Slot0.kV = SHOOTER_KV;
 
     feederMotor.getConfigurator().apply(feederConfiguration);
+    launcherIntakeMotor.getConfigurator().apply(launcherIntakeConfiguration);
+
+    for (double[] point : SHOOTER_RANGE_TO_RPS) {
+      shooterRpsByRangeMeters.put(point[0], point[1]);
+    }
   }
 
   public void launch() {
     feederout.Output = LAUNCHING_FEEDER_VALUE;
-    launcherIntakeout.Output = LAUNCHING_LAUNCHER_VALUE;
     feederMotor.setControl(feederout);
-    launcherIntakeMotor.setControl(launcherIntakeout);
+    runShooterAtTarget();
   }
 
   public void spinDown() {
-    feederout.Output = 0;
-    launcherIntakeout.Output = LAUNCHING_LAUNCHER_VALUE;
-    feederMotor.setControl(feederout);
-    launcherIntakeMotor.setControl(launcherIntakeout);
-    try {
-      wait(250);
-    } catch (Exception e) {
-      System.out.println(e);
-    }
-  }
-
-  public void intake() {
-    feederout.Output = INTAKING_FEEDER_VALUE;
-    launcherIntakeout.Output = INTAKING_INTAKE_VALUE;
-    feederMotor.setControl(feederout);
-    launcherIntakeMotor.setControl(launcherIntakeout);
-  }
-
-  public void eject() {
-    feederout.Output = -INTAKING_FEEDER_VALUE;
-    launcherIntakeout.Output = -INTAKING_INTAKE_VALUE;
-    feederMotor.setControl(feederout);
-    launcherIntakeMotor.setControl(launcherIntakeout);
-  }
-
-  public void stop(boolean shoot) {
-    if (shoot) {
-      spinDown();
-    }
+    shooterTargetRps = 0.0;
     feederMotor.stopMotor();
     launcherIntakeMotor.stopMotor();
   }
 
+  public void intake() {
+    feederout.Output = INTAKING_FEEDER_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(new DutyCycleOut(INTAKING_INTAKE_VALUE));
+  }
+
+  public void eject() {
+    feederout.Output = -INTAKING_FEEDER_VALUE;
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(new DutyCycleOut(-INTAKING_INTAKE_VALUE));
+  }
+
+  public void stop(boolean shoot) {
+    spinDown();
+  }
+
   public void unjam() {
     feederout.Output = SPIN_UP_FEEDER_VALUE;
-    launcherIntakeout.Output = -LAUNCHING_LAUNCHER_VALUE;
     if (Math.abs(launcherIntakeMotor.getVelocity().getValueAsDouble()) < 10) {
       feederMotor.setControl(feederout);
-      launcherIntakeMotor.setControl(launcherIntakeout);
+      launcherIntakeMotor.setControl(new DutyCycleOut(-LAUNCHING_LAUNCHER_VALUE));
     }
   }
 
   public void spinUp() {
+    spinUpToRps(DEFAULT_SHOOTER_RPS);
+  }
+
+  public void spinUpToRps(double targetRps) {
+    shooterTargetRps = Math.max(0.0, targetRps);
     feederout.Output = SPIN_UP_FEEDER_VALUE;
-    launcherIntakeout.Output = LAUNCHING_LAUNCHER_VALUE;
     feederMotor.setControl(feederout);
-    launcherIntakeMotor.setControl(launcherIntakeout);
+    runShooterAtTarget();
+  }
+
+  public void holdShooterAtRps(double targetRps) {
+    shooterTargetRps = Math.max(0.0, targetRps);
+    feederMotor.stopMotor();
+    runShooterAtTarget();
+  }
+
+  public void holdFeeder() {
+    feederout.Output = SPIN_UP_FEEDER_VALUE;
+    feederMotor.setControl(feederout);
+  }
+
+  public double getInterpolatedShooterRps(double rangeMeters) {
+    return shooterRpsByRangeMeters.get(rangeMeters);
+  }
+
+  public double getShooterVelocityRps() {
+    return Math.abs(launcherIntakeMotor.getVelocity().getValueAsDouble());
+  }
+
+  public double getShooterTargetRps() {
+    return shooterTargetRps;
+  }
+
+  public boolean isShooterAtSetpoint() {
+    return Math.abs(getShooterVelocityRps() - shooterTargetRps) <= SHOOTER_RPS_TOLERANCE;
+  }
+
+  private void runShooterAtTarget() {
+    launcherIntakeMotor.setControl(
+        launcherVelocityRequest.withVelocity(SHOOTER_DIRECTION_SIGN * shooterTargetRps));
   }
 
   public Command ejectCommand() {
@@ -104,6 +138,13 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   public Command launchCommand() {
     return this.run(() -> launch());
+  }
+
+  @Override
+  public void periodic() {
+    SmartDashboard.putNumber("Shooter Target RPS", shooterTargetRps);
+    SmartDashboard.putNumber("Shooter Actual RPS", getShooterVelocityRps());
+    SmartDashboard.putBoolean("Shooter At Setpoint", isShooterAtSetpoint());
   }
 }
 /*

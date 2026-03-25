@@ -1,7 +1,6 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CANDriveSubsystem;
@@ -74,19 +73,19 @@ public class AlignToHub extends Command {
                 xSpeed = Math.max(xSpeed, -0.5);
             }
 
-            driveSubsystem.arcadeDrive(0.0, xSpeed);
+            driveSubsystem.turnInPlace(xSpeed);
 
             if (!yController.atSetpoint() || !xController.atSetpoint()) {
                 stopTimer.reset();
             }
         } else {
-            driveSubsystem.arcadeDrive(0.0, 0.0);
+            driveSubsystem.stopDrive();
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        driveSubsystem.arcadeDrive(0.0, 0.0);
+        driveSubsystem.stopDrive();
     }
 
     @Override
