@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -158,8 +159,30 @@ public class RobotContainer {
         // are also scaled down so the rotation is more easily controllable.
 
         driveSubsystem.setDefaultCommand(
-                driveSubsystem.run(() -> driveSubsystem.arcadeDrive(-Math.pow(2, -driverController.getY()),
-                        ((-Math.pow(2, driverController.getX())) - (Math.pow(2, driverController.getZ()))))));
+                driveSubsystem.run(() -> {
+                    double forward = shapeAxis(
+                            -driverController.getY(),
+                            DRIVE_INPUT_DEADBAND,
+                            DRIVE_INPUT_CUBIC_WEIGHT);
+                    double rotation = -shapeAxis(
+                            driverController.getX(),
+                            ROTATION_INPUT_DEADBAND,
+                            ROTATION_INPUT_CUBIC_WEIGHT)
+                            - shapeAxis(
+                                    driverController.getZ(),
+                                    ROTATION_INPUT_DEADBAND,
+                                    ROTATION_INPUT_CUBIC_WEIGHT);
+
+                    driveSubsystem.arcadeDrive(
+                            forward,
+                            MathUtil.clamp(rotation * Z_ROTATION_SCALING, -1.0, 1.0));
+                }));
+    }
+
+    private double shapeAxis(double value, double deadband, double cubicWeight) {
+        double shapedValue = MathUtil.applyDeadband(value, deadband);
+        return (1.0 - cubicWeight) * shapedValue
+                + cubicWeight * shapedValue * shapedValue * shapedValue;
     }
 
     /**

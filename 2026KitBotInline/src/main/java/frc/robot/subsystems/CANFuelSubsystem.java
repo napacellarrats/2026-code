@@ -15,6 +15,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterLookupPoint;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class CANFuelSubsystem extends SubsystemBase {
@@ -44,8 +45,8 @@ public class CANFuelSubsystem extends SubsystemBase {
     feederMotor.getConfigurator().apply(feederConfiguration);
     launcherIntakeMotor.getConfigurator().apply(launcherIntakeConfiguration);
 
-    for (double[] point : SHOOTER_RANGE_TO_RPS) {
-      shooterRpsByRangeMeters.put(point[0], point[1]);
+    for (ShooterLookupPoint point : SHOOTER_LOOKUP_POINTS) {
+      shooterRpsByRangeMeters.put(point.rangeMeters(), point.shooterRps());
     }
   }
 

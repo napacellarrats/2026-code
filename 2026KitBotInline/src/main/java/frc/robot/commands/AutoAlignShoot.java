@@ -4,10 +4,12 @@ import static frc.robot.Constants.DriveConstants.ALIGNMENT_P;
 import static frc.robot.Constants.FuelConstants.DEFAULT_SHOOTER_RANGE_METERS;
 import static frc.robot.Constants.FuelConstants.DEFAULT_SHOOTER_RPS;
 import static frc.robot.Constants.FuelConstants.SHOOTER_MAX_ALIGN_TURN;
+import static frc.robot.Constants.FuelConstants.SHOOTER_READY_HOLD_SECONDS;
 import static frc.robot.Constants.FuelConstants.SHOOTER_TX_TOLERANCE_DEGREES;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers;
@@ -20,6 +22,9 @@ public class AutoAlignShoot extends Command {
   private final CANDriveSubsystem driveSubsystem;
   private final CANFuelSubsystem fuelSubsystem;
   private final PIDController txController = new PIDController(ALIGNMENT_P, 0, 0);
+  private final Timer readyToFeedTimer = new Timer();
+
+  private boolean wasFeeding = false;
 
   public AutoAlignShoot(CANDriveSubsystem driveSubsystem, CANFuelSubsystem fuelSubsystem) {
     this.driveSubsystem = driveSubsystem;
@@ -34,6 +39,9 @@ public class AutoAlignShoot extends Command {
   @Override
   public void initialize() {
     txController.reset();
+    readyToFeedTimer.stop();
+    readyToFeedTimer.reset();
+    wasFeeding = false;
   }
 
   @Override
@@ -41,10 +49,11 @@ public class AutoAlignShoot extends Command {
     boolean hasTarget = LimelightHelpers.getTV(LIMELIGHT_NAME);
     double requestedRps = DEFAULT_SHOOTER_RPS;
     double tx = 0.0;
+    double rangeMeters = DEFAULT_SHOOTER_RANGE_METERS;
 
     if (hasTarget) {
       tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-      double rangeMeters = getBestRangeMeters();
+      rangeMeters = getBestRangeMeters();
       requestedRps = fuelSubsystem.getInterpolatedShooterRps(rangeMeters);
 
       double turnCommand = MathUtil.clamp(
@@ -61,19 +70,38 @@ public class AutoAlignShoot extends Command {
     fuelSubsystem.spinUpToRps(requestedRps);
 
     boolean aligned = hasTarget && Math.abs(tx) <= SHOOTER_TX_TOLERANCE_DEGREES;
-    if (aligned && fuelSubsystem.isShooterAtSetpoint()) {
+    boolean readyToFeed = aligned && fuelSubsystem.isShooterAtSetpoint();
+    updateReadyToFeedTimer(readyToFeed);
+    boolean feedAllowed = readyToFeedTimer.hasElapsed(SHOOTER_READY_HOLD_SECONDS);
+
+    if (feedAllowed) {
       fuelSubsystem.launch();
+      if (!wasFeeding) {
+        System.out.printf(
+            "AutoShoot feed start range=%.2f targetRPS=%.1f actualRPS=%.1f tx=%.2f",
+            rangeMeters,
+            requestedRps,
+            fuelSubsystem.getShooterVelocityRps(),
+            tx);
+        System.out.println();
+      }
     }
+    wasFeeding = feedAllowed;
 
     SmartDashboard.putBoolean("Auto Shoot Has Target", hasTarget);
     SmartDashboard.putNumber("Auto Shoot Target RPS", requestedRps);
+    SmartDashboard.putNumber("Auto Shoot Actual RPS", fuelSubsystem.getShooterVelocityRps());
     SmartDashboard.putNumber("Auto Shoot TX", tx);
+    SmartDashboard.putBoolean("Auto Shoot Ready To Feed", readyToFeed);
+    SmartDashboard.putBoolean("Auto Shoot Feed Allowed", feedAllowed);
+    SmartDashboard.putNumber("Auto Shoot Ready Hold Seconds", readyToFeedTimer.get());
   }
 
   @Override
   public void end(boolean interrupted) {
     driveSubsystem.stopDrive();
     fuelSubsystem.stop(true);
+    System.out.println("AutoShoot end interrupted=" + interrupted);
   }
 
   @Override
@@ -97,5 +125,17 @@ public class AutoAlignShoot extends Command {
     }
 
     return DEFAULT_SHOOTER_RANGE_METERS;
+  }
+
+  private void updateReadyToFeedTimer(boolean readyToFeed) {
+    if (readyToFeed) {
+      if (!readyToFeedTimer.isRunning()) {
+        readyToFeedTimer.restart();
+      }
+      return;
+    }
+
+    readyToFeedTimer.stop();
+    readyToFeedTimer.reset();
   }
 }

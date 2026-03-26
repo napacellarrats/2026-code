@@ -22,6 +22,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * project.
  */
 public class Robot extends TimedRobot {
+  private record MatchPeriodStatus(String period, double periodTime) {
+  }
+
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
@@ -63,12 +66,10 @@ public class Robot extends TimedRobot {
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
-    double periodTime = 0;
-    String period = "";
-    getCurrentMatchPeriodAndTime(periodTime, period);
+    MatchPeriodStatus matchPeriodStatus = getCurrentMatchPeriodAndTime();
 
-    SmartDashboard.putString("Match Period", period);
-    SmartDashboard.putNumber("Period Time", periodTime);
+    SmartDashboard.putString("Match Period", matchPeriodStatus.period());
+    SmartDashboard.putNumber("Period Time", matchPeriodStatus.periodTime());
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
   }
 
@@ -139,10 +140,9 @@ public class Robot extends TimedRobot {
   public void simulationPeriodic() {
   }
 
-  private void getCurrentMatchPeriodAndTime(double periodTime, String period) {
+  private MatchPeriodStatus getCurrentMatchPeriodAndTime() {
     if (DriverStation.isEStopped()) {
-      period = "E-Stopped";
-      return;
+      return new MatchPeriodStatus("E-Stopped", 0.0);
     }
 
     double rawMatchTime = DriverStation.getMatchTime();
@@ -150,53 +150,40 @@ public class Robot extends TimedRobot {
     double matchTime = hasMatchTime ? rawMatchTime : 0.0;
 
     if (DriverStation.isAutonomous()) {
-      period = DriverStation.isEnabled() ? "AUTO" : "AUTO (Disabled)";
-      periodTime = hasMatchTime ? rawMatchTime : 0;
-      return;
+      return new MatchPeriodStatus(
+          DriverStation.isEnabled() ? "AUTO" : "AUTO (Disabled)",
+          hasMatchTime ? rawMatchTime : 0.0);
     }
 
     if (DriverStation.isTeleop()) {
       if (!hasMatchTime) {
-        period = DriverStation.isEnabled() ? "TELEOP" : "TELEOP (Disabled)";
-        return;
+        return new MatchPeriodStatus(
+            DriverStation.isEnabled() ? "TELEOP" : "TELEOP (Disabled)",
+            0.0);
       }
       if (!DriverStation.isEnabled() && matchTime <= 0.0) {
-        period = "TELEOP (Disabled)";
-        periodTime = matchTime;
-        return;
+        return new MatchPeriodStatus("TELEOP (Disabled)", matchTime);
       } else if (matchTime > 130.0) {
-        period = "TRANSITION SHIFT";
-        periodTime = matchTime - 130;
-        return;
+        return new MatchPeriodStatus("TRANSITION SHIFT", matchTime - 130.0);
       } else if (matchTime > 105.0) {
-        period = "SHIFT 1";
-        periodTime = matchTime - 105;
-        return;
+        return new MatchPeriodStatus("SHIFT 1", matchTime - 105.0);
       } else if (matchTime > 80.0) {
-        period = "SHIFT 2";
-        periodTime = matchTime - 80;
-        return;
+        return new MatchPeriodStatus("SHIFT 2", matchTime - 80.0);
       } else if (matchTime > 55.0) {
-        period = "SHIFT 3";
-        periodTime = matchTime - 55;
-        return;
+        return new MatchPeriodStatus("SHIFT 3", matchTime - 55.0);
       } else if (matchTime > 30.0) {
-        period = "SHIFT 4";
-        periodTime = matchTime - 30;
-        return;
+        return new MatchPeriodStatus("SHIFT 4", matchTime - 30.0);
       } else {
-        period = "END GAME";
-        periodTime = matchTime;
-        return;
+        return new MatchPeriodStatus("END GAME", matchTime);
       }
     }
 
     if (DriverStation.isTest()) {
-      period = DriverStation.isEnabled() ? "Test" : "Test (Disabled)";
-      periodTime = 0;
-      return;
+      return new MatchPeriodStatus(
+          DriverStation.isEnabled() ? "Test" : "Test (Disabled)",
+          0.0);
     }
 
-    period = "Disabled";
+    return new MatchPeriodStatus("Disabled", 0.0);
   }
 }

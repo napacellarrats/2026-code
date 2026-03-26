@@ -15,6 +15,8 @@ package frc.robot;
  * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public record ShooterLookupPoint(double rangeMeters, double shooterRps) {}
+
   public static final class DriveConstants {
     // Motor controller IDs for drivetrain motors
     public static final int LEFT_LEADER_ID = 3;
@@ -74,12 +76,13 @@ public final class Constants {
     public static final double SHOOTER_RPS_TOLERANCE = 3.0;
     public static final double SHOOTER_TX_TOLERANCE_DEGREES = 1.0;
     public static final double SHOOTER_MAX_ALIGN_TURN = 0.5;
-    public static final double[][] SHOOTER_RANGE_TO_RPS = {
-        { 1.5, 62.0 },
-        { 2.0, 65.0 },
-        { 2.5, 68.0 },
-        { 3.0, 71.0 },
-        { 3.5, 74.0 }
+    public static final double SHOOTER_READY_HOLD_SECONDS = 0.15;
+    public static final ShooterLookupPoint[] SHOOTER_LOOKUP_POINTS = {
+        new ShooterLookupPoint(1.5, 62.0),
+        new ShooterLookupPoint(2.0, 65.0),
+        new ShooterLookupPoint(2.5, 68.0),
+        new ShooterLookupPoint(3.0, 71.0),
+        new ShooterLookupPoint(3.5, 74.0)
     };
   }
 
@@ -88,6 +91,13 @@ public final class Constants {
     // values in the Joystick tab of the Driver Station software
     public static final int DRIVER_CONTROLLER_PORT = 0;
     public static final int OPERATOR_CONTROLLER_PORT = 1;
+
+    // Input shaping values for teleop drive. A higher cubic weight makes the
+    // controls softer near center while still reaching full output at full stick.
+    public static final double DRIVE_INPUT_DEADBAND = 0.08;
+    public static final double ROTATION_INPUT_DEADBAND = 0.08;
+    public static final double DRIVE_INPUT_CUBIC_WEIGHT = 0.75;
+    public static final double ROTATION_INPUT_CUBIC_WEIGHT = 0.6;
 
     // This value is multiplied by the joystick value when driving the robot to
     // help avoid driving and turning too fast and being difficult to control

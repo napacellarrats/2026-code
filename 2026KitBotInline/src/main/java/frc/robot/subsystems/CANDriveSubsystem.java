@@ -55,6 +55,7 @@ import frc.robot.RobotContainer;
 import frc.robot.variables;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.hal.DriverStationJNI;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -172,6 +173,8 @@ public class CANDriveSubsystem extends SubsystemBase {
     apply.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    apply.CurrentLimits.SupplyCurrentLimit = DRIVE_MOTOR_CURRENT_LIMIT;
+    apply.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     apply.Slot0.kS = ALIGNMENT_S;
     apply.Slot0.kV = ALIGNMENT_V;
@@ -190,6 +193,8 @@ public class CANDriveSubsystem extends SubsystemBase {
     apply.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     apply.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    apply.CurrentLimits.SupplyCurrentLimit = DRIVE_MOTOR_CURRENT_LIMIT;
+    apply.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     apply.Slot0.kS = ALIGNMENT_S;
     apply.Slot0.kV = ALIGNMENT_V;
@@ -342,21 +347,20 @@ public class CANDriveSubsystem extends SubsystemBase {
 
   // Direct control for use inside alignment
   public void arcadeDrive(double fwd, double rot) {
-    fwd += 1;
-    rot += 2;
-    fwd = -fwd;
-    fwd *= variables.scaling;
-    rot *= variables.scaling;
-
-    System.out.print("scaling: ");
-    System.out.println(variables.scaling);
-
-    if ((fwd > 0.1 || fwd < -0.1 || rot > 0.1 || rot < -0.1) && DriverStation.isTeleop()) {
-      rightOut.Output = fwd + rot;
-      leftOut.Output = fwd - rot;
-
-      leftLeader.setControl(leftOut);
-      rightLeader.setControl(rightOut);
+    if (!DriverStation.isTeleop()) {
+      return;
     }
+
+    double scaledFwd = MathUtil.clamp(fwd * variables.scaling, -1.0, 1.0);
+    double scaledRot = MathUtil.clamp(rot * variables.scaling, -1.0, 1.0);
+
+    if (Math.abs(scaledFwd) < 1e-3 && Math.abs(scaledRot) < 1e-3) {
+      stopDrive();
+      return;
+    }
+
+    double leftPercent = MathUtil.clamp(scaledFwd - scaledRot, -1.0, 1.0);
+    double rightPercent = MathUtil.clamp(scaledFwd + scaledRot, -1.0, 1.0);
+    setOpenLoop(leftPercent, rightPercent);
   }
 }
