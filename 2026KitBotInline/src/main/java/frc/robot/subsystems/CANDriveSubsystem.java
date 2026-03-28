@@ -351,16 +351,13 @@ public class CANDriveSubsystem extends SubsystemBase {
       return;
     }
 
-    double scaledFwd = MathUtil.clamp(fwd * variables.scaling, -1.0, 1.0);
-    double scaledRot = MathUtil.clamp(rot * variables.scaling, -1.0, 1.0);
-
-    if (Math.abs(scaledFwd) < 1e-3 && Math.abs(scaledRot) < 1e-3) {
+    if (Math.abs(fwd) < 1e-3 && Math.abs(rot) < 1e-3) {
       stopDrive();
       return;
     }
 
-    double leftPercent = MathUtil.clamp(scaledFwd - scaledRot, -1.0, 1.0);
-    double rightPercent = MathUtil.clamp(scaledFwd + scaledRot, -1.0, 1.0);
+    double leftPercent = MathUtil.clamp(fwd - rot, -1.0, 1.0);
+    double rightPercent = MathUtil.clamp(fwd + rot, -1.0, 1.0);
     setOpenLoop(leftPercent, rightPercent);
   }
 }

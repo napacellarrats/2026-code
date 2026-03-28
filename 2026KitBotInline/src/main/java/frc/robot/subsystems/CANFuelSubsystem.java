@@ -80,10 +80,8 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   public void unjam() {
     feederout.Output = SPIN_UP_FEEDER_VALUE;
-    if (Math.abs(launcherIntakeMotor.getVelocity().getValueAsDouble()) < 10) {
-      feederMotor.setControl(feederout);
-      launcherIntakeMotor.setControl(new DutyCycleOut(-LAUNCHING_LAUNCHER_VALUE));
-    }
+    feederMotor.setControl(feederout);
+    launcherIntakeMotor.setControl(new DutyCycleOut(-LAUNCHING_LAUNCHER_VALUE));
   }
 
   public void spinUp() {

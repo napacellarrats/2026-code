@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import static frc.robot.Constants.DriveConstants.ALIGNMENT_D;
 import static frc.robot.Constants.DriveConstants.ALIGNMENT_P;
 import static frc.robot.Constants.FuelConstants.DEFAULT_SHOOTER_RANGE_METERS;
 import static frc.robot.Constants.FuelConstants.DEFAULT_SHOOTER_RPS;
@@ -21,7 +22,7 @@ public class AutoAlignShoot extends Command {
 
   private final CANDriveSubsystem driveSubsystem;
   private final CANFuelSubsystem fuelSubsystem;
-  private final PIDController txController = new PIDController(ALIGNMENT_P, 0, 0);
+  private final PIDController txController = new PIDController(ALIGNMENT_P, 0, ALIGNMENT_D);
   private final Timer readyToFeedTimer = new Timer();
 
   private boolean wasFeeding = false;
@@ -67,12 +68,12 @@ public class AutoAlignShoot extends Command {
       driveSubsystem.stopDrive();
     }
 
-    fuelSubsystem.spinUpToRps(requestedRps);
+    //fuelSubsystem.spinUpToRps(requestedRps);
 
     boolean aligned = hasTarget && Math.abs(tx) <= SHOOTER_TX_TOLERANCE_DEGREES;
     boolean readyToFeed = aligned && fuelSubsystem.isShooterAtSetpoint();
     updateReadyToFeedTimer(readyToFeed);
-    boolean feedAllowed = readyToFeedTimer.hasElapsed(SHOOTER_READY_HOLD_SECONDS);
+    boolean feedAllowed = false;
 
     if (feedAllowed) {
       fuelSubsystem.launch();

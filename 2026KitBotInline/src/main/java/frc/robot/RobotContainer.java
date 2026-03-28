@@ -163,15 +163,15 @@ public class RobotContainer {
                     double forward = shapeAxis(
                             -driverController.getY(),
                             DRIVE_INPUT_DEADBAND,
-                            DRIVE_INPUT_CUBIC_WEIGHT);
-                    double rotation = -shapeAxis(
+                            DRIVE_INPUT_CUBIC_WEIGHT) * variables.scaling;
+                    double rotation = (-shapeAxis(
                             driverController.getX(),
                             ROTATION_INPUT_DEADBAND,
                             ROTATION_INPUT_CUBIC_WEIGHT)
                             - shapeAxis(
                                     driverController.getZ(),
                                     ROTATION_INPUT_DEADBAND,
-                                    ROTATION_INPUT_CUBIC_WEIGHT);
+                                    ROTATION_INPUT_CUBIC_WEIGHT)) * variables.scaling;
 
                     driveSubsystem.arcadeDrive(
                             forward,
